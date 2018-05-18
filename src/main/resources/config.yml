@@ -1,0 +1,11 @@
+#Plugin language
+language: 
+
+#Maximum of survey per player
+max_surveys: 1
+
+#Maximum of questions per survey
+max_questions: 10
+
+#Maximum of answers per question
+max_answers: 4

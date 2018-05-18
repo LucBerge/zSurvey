@@ -1,0 +1,51 @@
+name: zSurvey
+version: 1.1
+main: fr.zcraft.zsurvey.zSurvey
+description: Create and manage surveys in game.
+author: MrDomoo
+
+commands:
+    survey:
+        description: zSurvey central command
+    surveys:
+        description : List all surveys in progress or finished
+    list:
+        description : List all surveys in progress or finished
+    vote:
+        description : Vote for an answer
+    create:
+        description : Create a new survey
+    addquestion:
+        description : Add a question to a survey
+    addanswer:
+        description : Add an answer to an existing question
+    start:
+        description : Open the survey
+    see:
+        description : See the survey
+    end:
+        description : Close the survey
+    result:
+        description : See a survey result
+    remove:
+        description : Remove a survey
+    removequestion:
+        description : Remove a question from a survey
+    removeanswer:
+        description : Remove an answer from a question
+        
+# Permissions section generated using https://amaury.carrade.eu/tools/generators/bukkit/permissions.html
+permissions:
+    zsurvey.*:
+        default: false
+        children:
+            zsurvey.user: true
+            zsurvey.admin: true
+
+    zsurvey.user:
+        description: "Allow you to create and vote for surveys."
+        default: false
+
+    zsurvey.admin:
+        description: "Allow you to modify all surveys even if you are not the author."
+        default: false
