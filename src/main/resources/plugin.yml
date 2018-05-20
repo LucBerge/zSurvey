@@ -1,5 +1,5 @@
 name: zSurvey
-version: 1.1
+version: 1.2
 main: fr.zcraft.zsurvey.zSurvey
 description: Create and manage surveys in game.
 author: MrDomoo
@@ -44,7 +44,7 @@ permissions:
 
     zsurvey.user:
         description: "Allow you to create and vote for surveys."
-        default: false
+        default: true
 
     zsurvey.admin:
         description: "Allow you to modify all surveys even if you are not the author."

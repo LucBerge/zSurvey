@@ -2,7 +2,6 @@ package fr.zcraft.zsurvey.survey;
 
 import java.util.ArrayList;
 
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import fr.zcraft.zlib.components.rawtext.RawText;

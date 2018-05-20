@@ -2,7 +2,6 @@ package fr.zcraft.zsurvey.survey;
 
 import fr.zcraft.zlib.components.i18n.I;
 import fr.zcraft.zlib.components.rawtext.RawText;
-import fr.zcraft.zlib.components.rawtext.RawTextPart;
 import fr.zcraft.zlib.tools.text.RawMessage;
 import fr.zcraft.zsurvey.commands.VoteCommand;
 

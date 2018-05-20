@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 import fr.zcraft.zlib.components.commands.Commands;
@@ -15,7 +16,7 @@ import fr.zcraft.zlib.tools.text.RawMessage;
 import fr.zcraft.zsurvey.commands.*;
 import fr.zcraft.zsurvey.survey.Survey;
 
-public final class zSurvey extends ZPlugin{
+public final class zSurvey extends ZPlugin implements Listener{
 
 	private static Map<String,Survey> surveys = new HashMap<>();
 	
@@ -30,16 +31,16 @@ public final class zSurvey extends ZPlugin{
         loadComponents(Commands.class, Config.class, I18n.class);	//Charge les classes suivantes
 
         I18n.setPrimaryLocale(Config.LANGUAGE.get());				//Definit la langue utilisée
-
+        this.getServer().getPluginManager().registerEvents(this, this);
+        
         Commands.register("survey", ListCommand.class, VoteCommand.class, CreateCommand.class, AddQuestionCommand.class, AddAnswerCommand.class, StartCommand.class, SeeCommand.class, EndCommand.class, RemoveCommand.class, RemoveQuestionCommand.class, RemoveAnswerCommand.class);	//Charge les commandes suivantes
         Commands.registerShortcut("survey", ListCommand.class, "surveys");
 		//Deserialize les sondages en cours
     }
 	
 	@EventHandler
-	public void onPlayerJoinEvent(PlayerJoinEvent event) {
-		System.out.println("onJoin");
-    	list(event.getPlayer());	//Affiche la liste des sondages en cours et termines
+	public void onPlayerJoin(PlayerJoinEvent e) {
+    	list(e.getPlayer());	//Affiche la liste des sondages en cours et termines
 	}
 	
     @Override
