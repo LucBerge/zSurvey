@@ -48,6 +48,14 @@ public class Question {
 		answers.add(new Answer(answer));
 	}
 	
+	public void see(Player sender, boolean result, String name, int question_number) {		
+		
+		sender.sendMessage(I.t("   {darkaqua}{bold}Question {0} {darkaqua}- {1}", question_number, this.question));
+
+		for (int i = 0; i < answers.size(); i++)		
+			this.answers.get(i).see(sender, result, name, question_number, i+1, statAnswer(i));
+	}
+	
 	public void vote(Player sender, int answer_number) {
 		if(answer_number < 1 || this.answers.size() < answer_number)			//Si le numero de reponse n'existe pas
 			throw new zSurveyException(zSurveyException.Reason.UNKNOW_ANSWER);	//Exception
@@ -81,26 +89,11 @@ public class Question {
 		int total_voters = 0;
 		
 		for(Answer answer:this.answers)
-			total_voters+= answer.getVoters().size();
+			total_voters += answer.getVoters().size();
 	
-		return this.answers.get(answer_number).getVoters().size()*100/total_voters;
-	}
-	
-	  /************/
-	 /* TOSTRING */
-	/************/
-	
-	public String toString(Player sender, boolean result) {
-		
-		String message = I.t("{darkgreen}{0}", this.question);
-				
-		for (int i = 0; i < answers.size(); i++) {
-			message += I.t("\n  {gray}{0} {gray}- {1}",Character.toString((char)('A' + i)), answers.get(i).toString(sender));
-			
-			if(result == true)
-				message += I.t(" {gray}({0}%)", statAnswer(i));
-		}
-			
-		return message;
+		if(total_voters != 0)
+			return this.answers.get(answer_number).getVoters().size()*100/total_voters;
+		else
+			return 0;
 	}
 }

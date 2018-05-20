@@ -4,9 +4,13 @@ import java.util.ArrayList;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+
+import fr.zcraft.zlib.components.rawtext.RawText;
+import fr.zcraft.zlib.tools.text.RawMessage;
 import fr.zcraft.zlib.components.i18n.I;
 import fr.zcraft.zsurvey.Config;
 import fr.zcraft.zsurvey.zSurveyException;
+import fr.zcraft.zsurvey.commands.SeeCommand;
 
 public class Survey{
 
@@ -87,7 +91,9 @@ public class Survey{
 			throw new zSurveyException(zSurveyException.Reason.MAX_QUESTIONS);	//Exception
 
 		this.questions.add(new Question(question));
-		sender.sendMessage(I.t("{darkgreen}{bold}Question {0} {darkgreen}- {1}",this.questions.size(), question));
+		this.questions.get(this.questions.size()-1).see(sender, false, this.name, this.questions.size());
+		this.resetVotes();
+		this.state = SurveyState.unstarted;
 	}
 	
 	public void addAnswer(Player sender, int question_number, String answer) {
@@ -97,7 +103,9 @@ public class Survey{
 			throw new zSurveyException(zSurveyException.Reason.UNKNOW_QUESTION);	//Exception
 
 		this.questions.get(question_number-1).addAnswer(sender, answer);
-		sender.sendMessage(I.t("{darkgreen}{bold}Question {0} {darkgreen}- {1}",question_number, this.questions.get(question_number-1).toString(sender, false)));
+		this.questions.get(question_number-1).see(sender, false, this.name, question_number);
+		this.resetVotes();
+		this.state = SurveyState.unstarted;
 	}
 	
 	public void start(Player sender) {
@@ -116,20 +124,20 @@ public class Survey{
 			question.resetVotes();				//Remet a zero les votes
 		
 		this.state = SurveyState.in_progress;
-		Bukkit.broadcastMessage(I.t("{darkgreen}{0} just opened the survey \"{1}\". Type \"/survey vote {2}\" to participate.", this.author.getName(), this.name, this.name));
+		RawMessage.broadcast(new RawText(I.t("{darkgreen}{0} just opened the survey \"{1}\". {gold}Click here to vote.", this.author.getName(), this.name, this.name)).command(SeeCommand.class,this.name));
 	}
 
 	public void see(Player sender) {
-
-		if(this.state == SurveyState.unstarted && !sender.equals(this.author))	//Si le sondage n'est pas ouvert et si la personnen n'est pas l'auteur
+		
+		if(this.state == SurveyState.unstarted && !sender.equals(this.author))	//Si le sondage n'est pas ouvert et si la personne n'est pas l'auteur
 			throw new zSurveyException(zSurveyException.Reason.UNSTARTED);		//Exception
 
-		sender.sendMessage(this.toString());	
+		sender.sendMessage(this.toString() + I.t(" {gold}Click on the answers to vote."));	
 		for(int i = 0; i < this.questions.size(); i++) {
 			if(this.state == SurveyState.finished)
-				sender.sendMessage(I.t("{darkgreen}===========\n{darkgreen}{bold}Question {0} {darkgreen}- {1}", i+1, this.questions.get(i).toString(sender, true)));
+				this.questions.get(i).see(sender, true, this.name, i+1);
 			else
-				sender.sendMessage(I.t("{darkgreen}===========\n{darkgreen}{bold}Question {0} {darkgreen}- {1}", i+1, this.questions.get(i).toString(sender, false)));
+				this.questions.get(i).see(sender, false, this.name, i+1);
 		}
 	}
 	
@@ -140,7 +148,7 @@ public class Survey{
 			throw new zSurveyException(zSurveyException.Reason.UNSTARTED);		//Exception
 		
 		this.state = SurveyState.finished;
-		Bukkit.broadcastMessage(I.t("{darkgreen}{0} just closed the survey \"{1}\". Type \"/survey see {2}\" to view results.", this.author.getName(), this.name, this.name));
+		RawMessage.broadcast(new RawText(I.t("{darkgreen}{0} just closed the survey \"{1}\". {gold}Click here for results.", this.author.getName(), this.name, this.name)).command(SeeCommand.class,this.name));
 	}
 	
 	public void removeQuestion(Player sender, int question_number) {
@@ -163,6 +171,11 @@ public class Survey{
 		sender.sendMessage(I.t("{darkgreen}Answer {0} : Have been removed from question {1}",Character.toString((char)('A' + answer_number-1)) ,question_number));
 	}
 	
+	public void resetVotes() {
+		for(Question question:this.questions)
+			question.resetVotes();
+	}
+	
 	  /************/
 	 /* TOSTRING */
 	/************/
@@ -181,5 +194,9 @@ public class Survey{
 		message += I.t("{gray}{italic} - {0} - {darkgreen}{1} {gray}({2})", this.author.getName(), this.description, this.questions.size());
 		
 		return message;
+	}
+	
+	public RawText toRawText() {
+		return new RawText(this.toString()).command(SeeCommand.class, this.name);
 	}
 }

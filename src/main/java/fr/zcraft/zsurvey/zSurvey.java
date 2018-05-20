@@ -11,6 +11,7 @@ import fr.zcraft.zlib.components.commands.Commands;
 import fr.zcraft.zlib.components.i18n.I;
 import fr.zcraft.zlib.components.i18n.I18n;
 import fr.zcraft.zlib.core.ZPlugin;
+import fr.zcraft.zlib.tools.text.RawMessage;
 import fr.zcraft.zsurvey.commands.*;
 import fr.zcraft.zsurvey.survey.Survey;
 
@@ -61,13 +62,10 @@ public final class zSurvey extends ZPlugin{
         	sender.sendMessage("no permissions");*/
 		
 		if(!surveys.isEmpty()) {
-			String message = I.t("{darkgreen}There is {0} survey(s) in progress :", surveys.size());
-			
+			sender.sendMessage(I.t("{darkgreen}There is {0} survey(s) in progress :", surveys.size()));			
 			for (Map.Entry<String, Survey> entry : surveys.entrySet())
-				message += "\n" + entry.getValue();
-				
-			message += I.t("\n{gold}Click on a survey to vote.");
-			sender.sendMessage(message);
+				RawMessage.send(sender,entry.getValue().toRawText());				
+			sender.sendMessage(I.t("{gold}Click on a survey to vote."));
 		}
 		else
 			sender.sendMessage(I.t("{darkgreen}There is no surveys in progress."));
