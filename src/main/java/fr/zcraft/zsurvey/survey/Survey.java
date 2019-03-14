@@ -8,6 +8,7 @@ import fr.zcraft.zlib.components.rawtext.RawText;
 import fr.zcraft.zlib.tools.text.RawMessage;
 import fr.zcraft.zlib.components.i18n.I;
 import fr.zcraft.zsurvey.Config;
+import fr.zcraft.zsurvey.Permissions;
 import fr.zcraft.zsurvey.zSurveyException;
 import fr.zcraft.zsurvey.commands.SeeCommand;
 
@@ -68,7 +69,7 @@ public class Survey{
 	}
 
 	  /************/
-	 /* METHODES */
+	 /* COMMANDS */
 	/************/
 
 	public void vote(Player sender, int question_number, int answer_number) {
@@ -84,7 +85,7 @@ public class Survey{
 	}
 	
 	public void addQuestion(Player sender, String question) {
-		if(!this.author.equals(sender))											//Si la personne n'est pas l'auteur du sondage
+		if(!this.author.equals(sender) && !Permissions.ADMIN.grantedTo(sender))	//Si la personne n'est pas l'auteur du sondage et quelle n'est pas admin
 			throw new zSurveyException(zSurveyException.Reason.NON_AUTHOR);		//Exception
 		if(this.questions.size() >= Config.MAX_QUESTIONS.get())					//Si le nombre max de questions est atteint
 			throw new zSurveyException(zSurveyException.Reason.MAX_QUESTIONS);	//Exception
@@ -96,7 +97,7 @@ public class Survey{
 	}
 	
 	public void addAnswer(Player sender, int question_number, String answer) {
-		if(!this.author.equals(sender))												//Si la personne n'est pas l'auteur du sondage
+		if(!this.author.equals(sender) && !Permissions.ADMIN.grantedTo(sender))	//Si la personne n'est pas l'auteur du sondage et quelle n'est pas admin
 			throw new zSurveyException(zSurveyException.Reason.NON_AUTHOR);			//Exception
 		if(question_number < 1 || this.questions.size() < question_number)			//Si le numero de question n'existe pas
 			throw new zSurveyException(zSurveyException.Reason.UNKNOW_QUESTION);	//Exception
@@ -108,7 +109,7 @@ public class Survey{
 	}
 	
 	public void start(Player sender) {
-		if(!this.author.equals(sender))												//Si la personne n'est pas l'auteur du sondage
+		if(!this.author.equals(sender) && !Permissions.ADMIN.grantedTo(sender))	//Si la personne n'est pas l'auteur du sondage et quelle n'est pas admin
 			throw new zSurveyException(zSurveyException.Reason.NON_AUTHOR);			//Exception
 		if(this.questions.size() == 0)												//Si le sondage ne possède pas de question
 			throw new zSurveyException(zSurveyException.Reason.MIN_QUESTIONS);		//Exception
@@ -117,7 +118,7 @@ public class Survey{
 				throw new zSurveyException(zSurveyException.Reason.MIN_ANSWERS);	//Exception
 		}
 		if(this.state == SurveyState.in_progress)									//Si le sondage est en cours
-			throw new zSurveyException(zSurveyException.Reason.IN_PROGRESS);			//Exception
+			throw new zSurveyException(zSurveyException.Reason.IN_PROGRESS);		//Exception
 		
 		for(Question question:this.questions)	//Pour chaque question du sondage
 			question.resetVotes();				//Remet a zero les votes
@@ -141,17 +142,17 @@ public class Survey{
 	}
 	
 	public void end(Player sender) {
-		if(!this.author.equals(sender))											//Si la personne n'est pas l'auteur du sondage
-			throw new zSurveyException(zSurveyException.Reason.NON_AUTHOR);		//Exception
-		if(this.state == SurveyState.unstarted)									//Si le sondage est en cours
-			throw new zSurveyException(zSurveyException.Reason.UNSTARTED);		//Exception
+		if(!this.author.equals(sender) && !Permissions.ADMIN.grantedTo(sender))	//Si la personne n'est pas l'auteur du sondage et quelle n'est pas admin
+			throw new zSurveyException(zSurveyException.Reason.NON_AUTHOR);			//Exception
+		if(this.state == SurveyState.unstarted)										//Si le sondage est en cours
+			throw new zSurveyException(zSurveyException.Reason.UNSTARTED);			//Exception
 		
 		this.state = SurveyState.finished;
 		RawMessage.broadcast(new RawText(I.t("{darkgreen}{0} just closed the survey \"{1}\". {gold}Click here for results.", this.author.getName(), this.name, this.name)).command(SeeCommand.class,this.name));
 	}
 	
 	public void removeQuestion(Player sender, int question_number) {
-		if(!this.author.equals(sender))												//Si la personne n'est pas l'auteur du sondage
+		if(!this.author.equals(sender) && !Permissions.ADMIN.grantedTo(sender))	//Si la personne n'est pas l'auteur du sondage et quelle n'est pas admin
 			throw new zSurveyException(zSurveyException.Reason.NON_AUTHOR);			//Exception
 		if(question_number < 1 || this.questions.size() < question_number)			//Si le numero de question n'existe pas
 			throw new zSurveyException(zSurveyException.Reason.UNKNOW_QUESTION);	//Exception
@@ -169,6 +170,10 @@ public class Survey{
 		this.questions.get(question_number-1).removeAnswer(sender, answer_number);
 		sender.sendMessage(I.t("{darkgreen}Answer {0} : Have been removed from question {1}",Character.toString((char)('A' + answer_number-1)) ,question_number));
 	}
+	
+	  /************/
+	 /* METHODES */
+	/************/
 	
 	public void resetVotes() {
 		for(Question question:this.questions)

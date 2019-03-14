@@ -38,8 +38,20 @@ public class Question {
 	}
 	
 	  /************/
-	 /* METHODES */
+	 /* COMMANDS */
 	/************/
+	
+	public void vote(Player sender, int answer_number) {
+		if(answer_number < 1 || this.answers.size() < answer_number)			//Si le numero de reponse n'existe pas
+			throw new zSurveyException(zSurveyException.Reason.UNKNOW_ANSWER);	//Exception
+		
+		for(Answer answer:this.answers) {			//Pour chaque reponse
+			if(answer.getVoters().contains(sender))	//Si la personne a déjà voté
+				answer.cancelvote(sender);			//Annule le vote
+		}
+			
+		this.answers.get(answer_number-1).vote(sender);	//Vote pour l'autre reponse
+	}
 	
 	public void addAnswer(Player sender, String answer) {
 		if(this.answers.size() >= Config.MAX_ANSWERS.get())		//Si le nombre max de reponses est atteint
@@ -56,24 +68,16 @@ public class Question {
 			this.answers.get(i).see(sender, result, name, question_number, i+1, statAnswer(i));
 	}
 	
-	public void vote(Player sender, int answer_number) {
-		if(answer_number < 1 || this.answers.size() < answer_number)			//Si le numero de reponse n'existe pas
-			throw new zSurveyException(zSurveyException.Reason.UNKNOW_ANSWER);	//Exception
-		
-		for(Answer answer:this.answers) {			//Pour chaque reponse
-			if(answer.getVoters().contains(sender))	//Si la personne a déjà voté
-				answer.cancelvote(sender);			//Annule le vote
-		}
-			
-		this.answers.get(answer_number-1).vote(sender);	//Vote pour l'autre reponse
-	}
-	
 	public void removeAnswer(Player sender, int answer_number) {
 		if(answer_number < 1 || this.answers.size() < answer_number)			//Si le numero de reponse n'existe pas
 			throw new zSurveyException(zSurveyException.Reason.UNKNOW_ANSWER);	//Exception
 		
 		this.answers.remove(answer_number-1);	//Supprime la reponse
 	}
+	
+	  /************/
+	 /* METHODES */
+	/************/
 	
 	public void resetVotes() {
 		for(Answer answer:this.answers)

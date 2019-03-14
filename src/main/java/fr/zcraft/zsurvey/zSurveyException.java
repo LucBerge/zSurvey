@@ -2,7 +2,9 @@ package fr.zcraft.zsurvey;
 
 public class zSurveyException extends RuntimeException{
 
-    private Reason reason;
+	private static final long serialVersionUID = -7408057048156848135L;
+	
+	private Reason reason;
 
     public zSurveyException(Reason reason)
     {

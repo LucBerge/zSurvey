@@ -1,5 +1,10 @@
 package fr.zcraft.zsurvey;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,6 +23,7 @@ import fr.zcraft.zsurvey.survey.Survey;
 
 public final class zSurvey extends ZPlugin implements Listener{
 
+	private final File file = new File("surveys.dat");
 	private static Map<String,Survey> surveys = new HashMap<>();
 	
 	  /**********/
@@ -25,6 +31,7 @@ public final class zSurvey extends ZPlugin implements Listener{
 	/**********/
 	
 	@Override
+	@SuppressWarnings("unchecked")
     public void onEnable() {
 		
 		saveDefaultConfig();										//Charge config.yml
@@ -35,17 +42,19 @@ public final class zSurvey extends ZPlugin implements Listener{
         
         Commands.register("survey", ListCommand.class, VoteCommand.class, CreateCommand.class, AddQuestionCommand.class, AddAnswerCommand.class, StartCommand.class, SeeCommand.class, EndCommand.class, RemoveCommand.class, RemoveQuestionCommand.class, RemoveAnswerCommand.class);	//Charge les commandes suivantes
         Commands.registerShortcut("survey", ListCommand.class, "surveys");
-		//Deserialize les sondages en cours
+        
+		Load();	//Charge les sondages en cours a partir d'un fichier
     }
 	
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent e) {
-    	list(e.getPlayer());	//Affiche la liste des sondages en cours et termines
+		if(!surveys.isEmpty())		//Si il y a des sondages
+			list(e.getPlayer());	//Affiche la liste des sondages
 	}
 	
     @Override
-    public void onDisable() {        
-    	//Serialise les sondages en cours
+    public void onDisable() {
+    	Save();	//Sauvegarde les sondages en cours sur un fichier
     }
     
 	  /************/
@@ -53,15 +62,7 @@ public final class zSurvey extends ZPlugin implements Listener{
 	/************/
 	
 	/** Affiche la liste des sondages en cours et termines **/
-	public static void list(Player sender) {
-		/*
-        if (Permissions.USER.grantedTo(sender))
-        	sender.sendMessage("zsurvey.user -> ok");
-        if (Permissions.ADMIN.grantedTo(sender))
-        	sender.sendMessage("zsurvey.admin -> ok");
-        else
-        	sender.sendMessage("no permissions");*/
-		
+	public static void list(Player sender) {		
 		if(!surveys.isEmpty()) {
 			sender.sendMessage(I.t("{darkgreen}There is {0} survey(s) in progress :", surveys.size()));			
 			for (Map.Entry<String, Survey> entry : surveys.entrySet())
@@ -76,7 +77,7 @@ public final class zSurvey extends ZPlugin implements Listener{
 	public static void vote(Player sender, String name, int question_number, int answer_number) {	
 		if(surveys.get(name) == null)											//Si le sondage est inexistant
 			throw new zSurveyException(zSurveyException.Reason.UNKNOW_SURVEY);	//Exception
-		//Permission
+		
 		surveys.get(name).vote(sender, question_number, answer_number);
 	}
 	
@@ -84,9 +85,9 @@ public final class zSurvey extends ZPlugin implements Listener{
 	public static void create(Player sender, Survey survey) {	
 		if(surveys.get(survey.getName()) != null)									//Si un sondage possede le meme nom
 				throw new zSurveyException(zSurveyException.Reason.ALREADY_EXIST);	//Exception
-		if(surveys.size() >= Config.MAX_SURVEYS.get())								//Si le nombre max de sondage a été atteind
+		if(numberSurveys(sender) >= Config.MAX_SURVEYS.get())						//Si le nombre max de sondage a été atteint
 			throw new zSurveyException(zSurveyException.Reason.MAX_SURVEYS);		//Exception
-		//Permissions
+		
 		surveys.put(survey.getName(), survey);
 		sender.sendMessage(survey.toString());
 	}
@@ -95,7 +96,7 @@ public final class zSurvey extends ZPlugin implements Listener{
 	public static void addQuestion(Player sender, String name, String question) {
 		if(surveys.get(name) == null)											//Si le sondage est inexistant
 			throw new zSurveyException(zSurveyException.Reason.UNKNOW_SURVEY);	//Exception
-		//Permission
+		
 		surveys.get(name).addQuestion(sender, question);
 	}
 	
@@ -103,7 +104,7 @@ public final class zSurvey extends ZPlugin implements Listener{
 	public static void addAnswer(Player sender, String name, int question_number, String answer) {
 		if(surveys.get(name) == null)											//Si le sondage est inexistant
 			throw new zSurveyException(zSurveyException.Reason.UNKNOW_SURVEY);	//Exception
-		//Permission
+		
 		surveys.get(name).addAnswer(sender, question_number, answer);
 	}
 	
@@ -111,7 +112,7 @@ public final class zSurvey extends ZPlugin implements Listener{
 	public static void start(Player sender, String name) {
 		if(surveys.get(name) == null)											//Si le sondage est inexistant
 			throw new zSurveyException(zSurveyException.Reason.UNKNOW_SURVEY);	//Exception
-		//Permission
+		
 		surveys.get(name).start(sender);
 	}
 	
@@ -120,7 +121,7 @@ public final class zSurvey extends ZPlugin implements Listener{
         		
 		if(surveys.get(name) == null)											//Si le sondage est inexistant
 			throw new zSurveyException(zSurveyException.Reason.UNKNOW_SURVEY);	//Exception
-		//Permission
+		
 		surveys.get(name).see(sender);
 	}
 	
@@ -128,7 +129,7 @@ public final class zSurvey extends ZPlugin implements Listener{
 	public static void end(Player sender, String name) {
 		if(surveys.get(name) == null)											//Si le sondage est inexistant
 			throw new zSurveyException(zSurveyException.Reason.UNKNOW_SURVEY);	//Exception
-		//Permission
+		
 		surveys.get(name).end(sender);
 	}
 	
@@ -138,7 +139,7 @@ public final class zSurvey extends ZPlugin implements Listener{
 			throw new zSurveyException(zSurveyException.Reason.UNKNOW_SURVEY);	//Exception
 		if(!surveys.get(name).getAuthor().equals(sender))						//Si la sondage n'est pas l'auteur
 			throw new zSurveyException(zSurveyException.Reason.NON_AUTHOR);		//Exception
-		//Permissions
+		
 		surveys.remove(name);
 		sender.sendMessage(I.t("{darkgreen}Survey '{0}' have been removed.", name));
 	}
@@ -147,7 +148,7 @@ public final class zSurvey extends ZPlugin implements Listener{
 	public static void removeQuestion(Player sender, String name, int question_number) {
 		if(surveys.get(name) == null)											//Si le sondage est inexistant
 			throw new zSurveyException(zSurveyException.Reason.UNKNOW_SURVEY);	//Exception
-		//Permission
+		
 		surveys.get(name).removeQuestion(sender, question_number);
 	}
 
@@ -155,7 +156,42 @@ public final class zSurvey extends ZPlugin implements Listener{
 	public static void removeAnswer(Player sender, String name, int question_number, int answer_number) {	
 		if(surveys.get(name) == null)											//Si le sondage est inexistant
 			throw new zSurveyException(zSurveyException.Reason.UNKNOW_SURVEY);	//Exception
-		//Permission
+		
 		surveys.get(name).removeAnswer(sender, question_number, answer_number);
 	}
+
+	  /************/
+	 /* METHODES */
+	/************/
+	
+	private static int numberSurveys(Player sender) {
+		int count = 0;
+		for (Map.Entry<String, Survey> entry : surveys.entrySet()) {
+			if(entry.getValue().getAuthor().equals(sender))
+				count++;
+		}
+		return count;
+	}
+	
+	private void Save() {		
+		try {
+			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file));
+			oos.writeObject(surveys);
+			oos.flush();
+			oos.close();
+		}catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void Load() {		
+		try {
+			ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
+			surveys = (Map<String, Survey>) ois.readObject();
+			ois.close();
+		}catch(Exception e) {
+			System.out.println(e.getMessage());
+		}
+	}	
 }

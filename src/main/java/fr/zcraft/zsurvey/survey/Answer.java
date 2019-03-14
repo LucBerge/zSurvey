@@ -40,7 +40,7 @@ public class Answer {
 	}
 	
 	  /************/
-	 /* METHODES */
+	 /* COMMANDS */
 	/************/
 	
 	public void see(Player sender, boolean result, String name, int question_number, int answer_number, float statistics) {
@@ -56,6 +56,10 @@ public class Answer {
 
 		RawMessage.send(sender, new RawText(message).command(VoteCommand.class, name + " " + question_number + " " + answer_number));
 	}
+	
+	  /************/
+	 /* METHODES */
+	/************/
 	
 	public void vote(Player sender) {
 		this.voters.add(sender);
