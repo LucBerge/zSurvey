@@ -4,8 +4,8 @@ import org.bukkit.permissions.Permissible;
 
 public enum Permissions
 {
-    USER("zsurvey.user"),
-    ADMIN("zsurvey.admin");
+    USER("zsurvey.user"),	//Donne le droit de voter et creer des sondages
+    ADMIN("zsurvey.admin");	//Donne le droit tous les droits
 
     private String permission;
 

@@ -1,8 +1,11 @@
 package fr.zcraft.zsurvey.commands;
 
+import org.bukkit.command.CommandSender;
+
 import fr.zcraft.zlib.components.commands.Command;
 import fr.zcraft.zlib.components.commands.CommandException;
 import fr.zcraft.zlib.components.i18n.I;
+import fr.zcraft.zsurvey.Permissions;
 import fr.zcraft.zsurvey.zSurveyException;
 
 abstract public class zSurveyCommands extends Command{
@@ -67,4 +70,10 @@ abstract public class zSurveyCommands extends Command{
 	    		break;
 	    }
 	}
+	
+    @Override
+    public boolean canExecute(CommandSender sender)
+    {
+        return Permissions.USER.grantedTo(sender) || Permissions.ADMIN.grantedTo(sender);
+    }
 }
